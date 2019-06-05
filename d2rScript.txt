@@ -1,0 +1,56 @@
+#!/bin/bash
+
+for f in {1..2}
+do
+for d in {1..2}
+do
+for p in {1..5}
+do
+for j in {1..5}
+do
+
+JOB=`qsub -m a -N d2r${f}${d}${p}${j} -j oe -l cput=08:00:00 -l mem=4gb - << EOJ
+
+cd d2r
+
+R --vanilla << RSCRIPT
+
+	source("r_feldt simulation functions.R")
+	source("parameter values.R")
+	
+	rho.rand <- sample(rho)
+	results <- array(NA, dim=c(length(rho), length(stat.names()), 2), 
+		dimnames = c(rho=list(rho.rand), stat=list(stat.names()), summary=list(c("mean","var"))))
+
+	system.time({
+	for (r in 1:length(rho)) {
+		if (design[${d}] == "EG") {
+			SMD <- simulate_SMD(rho.rand[r], p1[${p}], p1[${p}], 
+				n.T[${j}]/2, n.T[${j}]/2, iterations[${j}], fixed.cutoff[${f}])
+			results[r,,] <- analyze(SMD, p1[${p}], p1[${p}], 
+				n.T[${j}]/2, n.T[${j}]/2, truncation=truncation, k=taylor.degree)
+		} else {
+			n1 <- round(p1[${p}] * n.T[${j}], 0)
+			n2 <- n.T[${j}] - n1
+			SMD <- simulate_SMD(rho.rand[r], p1[${p}], 1 - p1[${p}], 
+				n1, n2, iterations[${j}], fixed.cutoff[${f}])
+			results[r,,] <- analyze(SMD, p1[${p}], 1 - p1[${p}], 
+				n1, n2, truncation = truncation, k=taylor.degree)
+		}
+		print(rho.rand[r])
+	}})
+
+	results <- results[order(rho.rand),,]
+
+	save(results, file = paste("d2r ",design[${d}]," fix=",fixed.cutoff[${f}]," p",1/p1[${p}]," n",n.T[${j}],".rData", sep=""))
+
+RSCRIPT
+EOJ
+`
+
+echo "JobID = ${JOB} for parameter set ${f} ${d} ${p} ${j} submitted on `date`" 
+done
+done
+done
+done
+exit
