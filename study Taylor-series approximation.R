@@ -1,4 +1,3 @@
-setwd("C:\\Documents and Settings\\James Pustejovsky\\My Documents\\My Dropbox\\Meta-analysis\\d-to-r conversion\\simulations and code")
 source("r_feldt simulation functions.R")
 
 ##########################################

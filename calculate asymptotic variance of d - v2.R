@@ -1,5 +1,3 @@
-setwd("C:\\Users\\James\\Dropbox\\Meta-analysis\\d-to-r conversion\\simulations and code")
-#setwd("C:\\Users\\jep701\\Dropbox\\Meta-analysis\\d-to-r conversion\\simulations and code")
 source("r_feldt simulation functions.R")
 
 rho <- 0.7
